@@ -29,6 +29,7 @@ module Oled
     input				clk,		//12MHz系统时钟
     input				rst_n,		//系统复位，低有效
 
+    input       [3:0]   sw, // 显示信号
     output	reg			oled_csn,	//OLCD液晶屏使能
     output	reg			oled_rst,	//OLCD液晶屏复位
     output	reg			oled_dcn,	//OLCD数据指令控制
@@ -41,7 +42,7 @@ module Oled
     localparam HIGH	= 1'b1, LOW = 1'b0;
     localparam DATA	= 1'b1, CMD = 1'b0;
  
-    reg [3:0] sw;
+    //reg [3:0] sw;
     reg [7:0] cmd [24:0];
     reg [39:0] mem [122:0];
     reg	[7:0]	y_p, x_ph, x_pl;

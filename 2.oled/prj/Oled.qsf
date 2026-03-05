@@ -78,9 +78,21 @@ set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_H11 -to key
+set_global_assignment -name VERILOG_FILE ../rtl/Bin2Bcd.v
 set_global_assignment -name VERILOG_FILE ../rtl/KeyDebounce.v
 set_global_assignment -name VERILOG_FILE ../rtl/top.v
 set_global_assignment -name VERILOG_FILE ../rtl/Oled12864.v
 set_global_assignment -name SIGNALTAP_FILE output_files/stp1.stp
-set_location_assignment PIN_J14 -to key
+set_location_assignment PIN_P15 -to ad_clk
+set_location_assignment PIN_R14 -to ad_io[9]
+set_location_assignment PIN_P12 -to ad_io[8]
+set_location_assignment PIN_R11 -to ad_io[7]
+set_location_assignment PIN_R9 -to ad_io[6]
+set_location_assignment PIN_P9 -to ad_io[5]
+set_location_assignment PIN_P8 -to ad_io[4]
+set_location_assignment PIN_P7 -to ad_io[3]
+set_location_assignment PIN_R7 -to ad_io[2]
+set_location_assignment PIN_P6 -to ad_io[1]
+set_location_assignment PIN_R5 -to ad_io[0]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

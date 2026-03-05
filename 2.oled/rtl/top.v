@@ -9,20 +9,29 @@ module top(
     output  wire        oled_clk,   //OLCD时钟信号
     output  wire        oled_dat,    //OLCD数据信号
 
-    input               key         // 按键
+    input               key,         // 按键
+
+    // ad 采集
+    input   [9:0]       ad_io,
+    output  wire        ad_clk
 );
 
 
-reg [3:0] sw;
+reg [9:0] sw;
+wire [9:0] bcd_code;
+
 wire key_result;
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        sw <= 4'd0;
+        sw <= 10'd0;
     else if(key_result==0) 
-        sw <= 4'd1;
+        sw <= bcd_code;
     else
-        sw <= 4'd2;
+        sw <= sw;
 end
+
+
+assign ad_clk = clk;
 
 Oled oled_inst(
     .clk     (clk     ), 
@@ -41,6 +50,12 @@ KeyDebounce key_inst(
     .rst_n      (rst_n),
     .key        (key),
     .key_filter (key_result)
+);
+
+Bin2Bcd bin2bcd_inst(
+    .rst_n      (rst_n),
+    .bin_code   (ad_io),
+    .bcd_code   (bcd_code)
 );
 
 endmodule

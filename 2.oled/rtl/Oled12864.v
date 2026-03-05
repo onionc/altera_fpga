@@ -29,7 +29,7 @@ module Oled
     input				clk,		//12MHz系统时钟
     input				rst_n,		//系统复位，低有效
 
-    input       [3:0]   sw, // 显示信号
+    input       [15:0]   sw, // 显示信号
     output	reg			oled_csn,	//OLCD液晶屏使能
     output	reg			oled_rst,	//OLCD液晶屏复位
     output	reg			oled_dcn,	//OLCD数据指令控制
@@ -71,7 +71,7 @@ module Oled
                         state <= MAIN; state_back <= MAIN;
                     end
                 MAIN:begin
-                        if(cnt_main >= 5'd12) cnt_main <= 5'd12;
+                        if(cnt_main >= 5'd12) cnt_main <= 5'd9;
                         else cnt_main <= cnt_main + 1'b1;
                         case(cnt_main)	//MAIN状态
                             5'd0:	begin state <= INIT; end
@@ -84,10 +84,10 @@ module Oled
                             5'd7:	begin y_p <= 8'hb6; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
                             5'd8:	begin y_p <= 8'hb7; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
  
-                            5'd9:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw; state <= SCAN; end
-                            5'd10:	begin y_p <= 8'hb1; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw; state <= SCAN; end
-                            5'd11:	begin y_p <= 8'hb2; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw; state <= SCAN; end
-                            5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw; state <= SCAN; end
+                            5'd9:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw[15:12]; state <= SCAN; end
+                            5'd10:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h08; num <= 5'd 1; char <= sw[11:8]; state <= SCAN; end
+                            5'd11:	begin y_p <= 8'hb0; x_ph <= 8'h16; x_pl <= 8'h00; num <= 5'd 1; char <= sw[7:4]; state <= SCAN; end
+                            5'd12:	begin y_p <= 8'hb0; x_ph <= 8'h16; x_pl <= 8'h08; num <= 5'd 1; char <= sw[3:0]; state <= SCAN; end
  
                             default: state <= IDLE;
                         endcase

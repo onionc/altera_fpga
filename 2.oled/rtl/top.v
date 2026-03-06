@@ -17,13 +17,13 @@ module top(
 );
 
 
-reg [9:0] sw;
-wire [9:0] bcd_code;
+reg [15:0] sw;
+wire [15:0] bcd_code;
 
 wire key_result;
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
-        sw <= 10'd0;
+        sw <= 16'd0;
     else if(key_result==0) 
         sw <= bcd_code;
     else

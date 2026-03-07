@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(10M02SCM153) Path("E:/lab/fpga/altera/2.oled/prj/output_files/") File("Oled.pof") MfrSpec(OpMask(1) Child_OpMask(2 1 1));
+		Device PartName(10M02SCM153) Path("E:/MyHardware/altera/altera_fpga/2.oled/prj/output_files/") File("Oled.pof") MfrSpec(OpMask(1) Child_OpMask(2 1 1));
 
 ChainEnd;
 

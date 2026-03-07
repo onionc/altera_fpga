@@ -19,7 +19,7 @@ module top(
 
 reg [15:0] sw;
 (*keep*) wire [15:0] bcd_code;
-wire clk_100mhz,locked;
+wire clk_24mhz,locked;
 wire [9:0] signal_cnt;
 
 wire key_result;
@@ -33,13 +33,13 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-wire clk_48mhz;
-assign ad_clk = clk;
-
+assign ad_clk = clk_24mhz;
+wire [1:0] unit; // 单位：0-Hz 1KHz 2MHz
 Oled oled_inst(
     .clk     (clk     ), 
     .rst_n   (rst_n   ), 
     .sw      (sw      ),
+    .unit    (unit    ),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),
     .oled_dcn(oled_dcn),
@@ -55,29 +55,28 @@ KeyDebounce key_inst(
     .key_filter (key_result)
 );
 
-(*keep*) wire [2:0] state_signal;
 
 Bin2Bcd bin2bcd_inst(
     .rst_n      (rst_n),
     .bin_code   (signal_cnt),
     .bcd_code   (bcd_code)
 );
-/*
+
 PLL pll_inst
 (
 .areset				(!rst_n			), //pll模块的复位为高有效
 .inclk0				(clk			), //12MHz系统时钟输入
-.c0					(clk_48mhz		), //48MHz时钟输出
+.c0					(clk_24mhz		), //48MHz时钟输出
 .locked				(locked			)  //pll lock信号输出
 );
-*/
+
 
 
 CheckSignal signal_inst(
-    .clk(clk),
+    .clk(clk_24mhz),
     .rst_n(rst_n),
     .ad_val(ad_io),
     .ad_cnt(signal_cnt),
-    .state(state_signal)
+    .unit(unit)
 );
 endmodule

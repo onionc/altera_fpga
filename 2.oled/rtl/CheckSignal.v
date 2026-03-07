@@ -5,14 +5,15 @@ module CheckSignal(
     input           rst_n,
     input   [9:0]   ad_val,    // 信号数值
     output  reg [9:0] ad_cnt,
-    output  reg [2:0]  state
+    output  reg [1:0]  unit // 单位：0-Hz 1-KHz 2-Mhz
+    
 );
 
 reg [9:0]   min = 10'd600;
 reg [9:0]   max = 10'd650;
 reg [27:0] clk_cnt;
 
-//reg [2:0] state;
+reg [2:0] state;
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n)
@@ -43,23 +44,37 @@ always @(posedge clk)
 
 wire zero_cross = (state==3'd0) && (state_d==3'd2);
 
-reg [9:0] ad_cnt_v;
+reg [31:0] ad_cnt_v;
+wire [31:0] ad_cnt_v_div1K;
+wire [31:0] ad_cnt_v_div1M;
+assign ad_cnt_v_div1K = (ad_cnt_v * 32'd4194) >> 22; // 除1000,误差可能差1
+assign ad_cnt_v_div1M = (ad_cnt_v_div1K * 32'd4194) >> 22;
+
 
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         clk_cnt <= 28'b0;
         ad_cnt <= 10'b0;
         ad_cnt_v <= 0;
-    end else if(clk_cnt == 28'd12000000-1) begin
+        unit <= 2'b0;
+    end else if(clk_cnt == 28'd24000000-1) begin
         clk_cnt <= 28'b0;
-        ad_cnt <= ad_cnt_v;
+        
+        if(ad_cnt_v > 'd1000000) begin
+            ad_cnt <= ad_cnt_v_div1M;
+            unit <= 2'd2;
+        end if(ad_cnt_v > 'd1000) begin
+            ad_cnt <= ad_cnt_v_div1K;
+            unit <= 2'b1;
+        end else
+            ad_cnt <= ad_cnt_v;
         ad_cnt_v <= 0;
     end else begin
         clk_cnt <= clk_cnt + 28'b1;
         //ad_cnt <= ad_cnt;
 
         if(zero_cross == 1'b1)
-            ad_cnt_v <= ad_cnt_v+10'b1;
+            ad_cnt_v <= ad_cnt_v+'b1;
         //else
             //ad_cnt_v <= ad_cnt_v;
     end

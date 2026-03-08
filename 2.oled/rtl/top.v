@@ -19,6 +19,7 @@ module top(
 
 reg [15:0] sw;
 (*keep*) wire [15:0] bcd_code;
+wire [15:0] vpp_code;
 wire clk_24mhz,locked;
 wire [9:0] signal_cnt;
 
@@ -40,6 +41,7 @@ Oled oled_inst(
     .rst_n   (rst_n   ), 
     .sw      (sw      ),
     .unit    (unit    ),
+//    .vpp    (vpp_code),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),
     .oled_dcn(oled_dcn),
@@ -60,7 +62,12 @@ Bin2Bcd bin2bcd_inst(
     .rst_n      (rst_n),
     .bin_code   (signal_cnt),
     .bcd_code   (bcd_code)
-);
+);/*
+Bin2Bcd bin2bcd_inst2(
+    .rst_n      (rst_n),
+    .bin_code   (vpp),
+    .bcd_code   (vpp_code)
+);*/
 
 PLL pll_inst
 (
@@ -78,5 +85,6 @@ CheckSignal signal_inst(
     .ad_val(ad_io),
     .ad_cnt(signal_cnt),
     .unit(unit)
+    //.vpp(vpp)
 );
 endmodule

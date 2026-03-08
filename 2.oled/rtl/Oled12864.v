@@ -31,6 +31,7 @@ module Oled
 
     input       [15:0]   sw, // 显示信号
     input       [1:0]   unit, // 单位
+    input       [15:0]  vpp, // 显示峰峰值
     output	reg			oled_csn,	//OLCD液晶屏使能
     output	reg			oled_rst,	//OLCD液晶屏复位
     output	reg			oled_dcn,	//OLCD数据指令控制
@@ -45,7 +46,7 @@ module Oled
  
     //reg [3:0] sw;
     reg [7:0] cmd [24:0];
-    reg [39:0] mem [122:0];
+    reg [39:0] mem [91:0];
     reg	[7:0]	y_p, x_ph, x_pl;
     reg	[(8*21-1):0] char;
     reg	[7:0]	num, char_reg;				//
@@ -72,23 +73,39 @@ module Oled
                         state <= MAIN; state_back <= MAIN;
                     end
                 MAIN:begin
-                        if(cnt_main >= 5'd12) cnt_main <= 5'd7;
+                        if(cnt_main >= 5'd10) cnt_main <= 5'd9;
                         else cnt_main <= cnt_main + 1'b1;
                         case(cnt_main)	//MAIN状态
                             5'd0:	begin state <= INIT; end
-                            5'd1:	begin y_p <= 8'hb0; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd2:	begin y_p <= 8'hb1; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd3:	begin y_p <= 8'hb2; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd4:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd5:	begin y_p <= 8'hb4; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd6:	begin y_p <= 8'hb5; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd7:	begin y_p <= 8'hb6; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "OLED TEST       ";state <= SCAN; end
-                            5'd8:	begin y_p <= 8'hb7; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd 1; char <= unit;state <= SCAN; end
- 
-                            5'd9:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd 1; char <= sw[15:12]; state <= SCAN; end
-                            5'd10:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h08; num <= 5'd 1; char <= sw[11:8]; state <= SCAN; end
-                            5'd11:	begin y_p <= 8'hb0; x_ph <= 8'h16; x_pl <= 8'h00; num <= 5'd 1; char <= sw[7:4]; state <= SCAN; end
-                            5'd12:	begin y_p <= 8'hb0; x_ph <= 8'h16; x_pl <= 8'h08; num <= 5'd 1; char <= sw[3:0]; state <= SCAN; end
+                            5'd1:	begin y_p <= 8'hb0; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= " FREQ:      HZ  ";state <= SCAN; end
+                            5'd2:	begin y_p <= 8'hb1; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            5'd3:	begin y_p <= 8'hb2; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            
+                            5'd4:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            5'd5:	begin y_p <= 8'hb4; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            5'd6:	begin y_p <= 8'hb5; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            5'd7:	begin y_p <= 8'hb6; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            5'd8:	begin y_p <= 8'hb7; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
+                            
+                            // 更新频率和单位
+                            5'd9:	begin y_p <= 8'hb0; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 4; char <= {{4'd0,sw[15:12]},{4'd0,sw[11:8]},{4'd0,sw[7:4]},{4'd0,sw[3:0]}}; state <= SCAN; end
+                            5'd10:	begin y_p <= 8'hb0; x_ph <= 8'h15; x_pl <= 8'h00; num <= 5'd1; 
+                                begin
+                                    case(unit)
+                                        2'd0:
+                                            char <= " ";
+                                        2'd1:
+                                            char <= "K";
+                                        2'd2:
+                                            char <= "M";
+                                    endcase 
+
+                                end
+                            ;state <= SCAN; end
+                            // 更新vpp lsb
+                            //5'd7:	begin y_p <= 8'hb2; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 4; char <= {{4'd0,vpp[15:12]},{4'd0,vpp[11:8]},{4'd0,vpp[7:4]},{4'd0,vpp[3:0]}}; state <= SCAN; end
+                            
+
  
                             default: state <= IDLE;
                         endcase
@@ -281,11 +298,12 @@ module Oled
             mem[ 89] = {8'h07, 8'h08, 8'h70, 8'h08, 8'h07};   // 89  Y
             mem[ 90] = {8'h61, 8'h51, 8'h49, 8'h45, 8'h43};   // 90  Z
             mem[ 91] = {8'h00, 8'h7F, 8'h41, 8'h41, 8'h00};   // 91  [
-            mem[ 92] = {8'h55, 8'h2A, 8'h55, 8'h2A, 8'h55};   // 92  .
+            /*mem[ 92] = {8'h55, 8'h2A, 8'h55, 8'h2A, 8'h55};   // 92  .
             mem[ 93] = {8'h00, 8'h41, 8'h41, 8'h7F, 8'h00};   // 93  ]
             mem[ 94] = {8'h04, 8'h02, 8'h01, 8'h02, 8'h04};   // 94  ^
             mem[ 95] = {8'h40, 8'h40, 8'h40, 8'h40, 8'h40};   // 95  _
             mem[ 96] = {8'h00, 8'h01, 8'h02, 8'h04, 8'h00};   // 96  '
+            
             mem[ 97] = {8'h20, 8'h54, 8'h54, 8'h54, 8'h78};   // 97  a
             mem[ 98] = {8'h7F, 8'h48, 8'h44, 8'h44, 8'h38};   // 98  b
             mem[ 99] = {8'h38, 8'h44, 8'h44, 8'h44, 8'h20};   // 99  c
@@ -311,7 +329,7 @@ module Oled
             mem[119] = {8'h3C, 8'h40, 8'h30, 8'h40, 8'h3C};   // 119 w
             mem[120] = {8'h44, 8'h28, 8'h10, 8'h28, 8'h44};   // 120 x
             mem[121] = {8'h1C, 8'hA0, 8'hA0, 8'hA0, 8'h7C};   // 121 y
-            mem[122] = {8'h44, 8'h64, 8'h54, 8'h4C, 8'h44};   // 122 z
+            mem[122] = {8'h44, 8'h64, 8'h54, 8'h4C, 8'h44};   // 122 z*/
         end
  
 endmodule

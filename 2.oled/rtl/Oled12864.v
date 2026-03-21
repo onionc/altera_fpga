@@ -48,7 +48,7 @@ module Oled
     reg [7:0] cmd [24:0];
     reg [39:0] mem [91:0];
     reg	[7:0]	y_p, x_ph, x_pl;
-    reg	[(8*21-1):0] char;
+    reg	[(8*16-1):0] char;
     reg	[7:0]	num, char_reg;				//
     reg	[4:0]	cnt_main, cnt_init, cnt_scan, cnt_write;
     reg	[15:0]	num_delay, cnt_delay, cnt;
@@ -73,11 +73,11 @@ module Oled
                         state <= MAIN; state_back <= MAIN;
                     end
                 MAIN:begin
-                        if(cnt_main >= 5'd10) cnt_main <= 5'd9;
+                        if(cnt_main >= 5'd11) cnt_main <= 5'd9;
                         else cnt_main <= cnt_main + 1'b1;
                         case(cnt_main)	//MAIN状态
                             5'd0:	begin state <= INIT; end
-                            5'd1:	begin y_p <= 8'hb0; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= " FREQ:      HZ  ";state <= SCAN; end
+                            5'd1:	begin y_p <= 8'hb0; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= " FREQ       HZ  ";state <= SCAN; end
                             5'd2:	begin y_p <= 8'hb1; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
                             5'd3:	begin y_p <= 8'hb2; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
                             
@@ -103,7 +103,7 @@ module Oled
                                 end
                             ;state <= SCAN; end
                             // 更新vpp lsb
-                            //5'd7:	begin y_p <= 8'hb2; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 4; char <= {{4'd0,vpp[15:12]},{4'd0,vpp[11:8]},{4'd0,vpp[7:4]},{4'd0,vpp[3:0]}}; state <= SCAN; end
+                            5'd11:	begin y_p <= 8'hb2; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 4; char <= {{4'd0,vpp[15:12]},{4'd0,vpp[11:8]},{4'd0,vpp[7:4]},{4'd0,vpp[3:0]}}; state <= SCAN; end
                             
 
  
@@ -237,8 +237,9 @@ module Oled
             mem[ 13] = {8'h7F, 8'h41, 8'h41, 8'h22, 8'h1C};   // 68  D
             mem[ 14] = {8'h7F, 8'h49, 8'h49, 8'h49, 8'h41};   // 69  E
             mem[ 15] = {8'h7F, 8'h09, 8'h09, 8'h09, 8'h01};   // 70  F
- 
+
             mem[ 32] = {8'h00, 8'h00, 8'h00, 8'h00, 8'h00};   // 32  sp 
+             /*
             mem[ 33] = {8'h00, 8'h00, 8'h2f, 8'h00, 8'h00};   // 33  !  
             mem[ 34] = {8'h00, 8'h07, 8'h00, 8'h07, 8'h00};   // 34  
             mem[ 35] = {8'h14, 8'h7f, 8'h14, 8'h7f, 8'h14};   // 35  #
@@ -269,7 +270,7 @@ module Oled
             mem[ 60] = {8'h08, 8'h14, 8'h22, 8'h41, 8'h00};   // 60  <
             mem[ 61] = {8'h14, 8'h14, 8'h14, 8'h14, 8'h14};   // 61  =
             mem[ 62] = {8'h00, 8'h41, 8'h22, 8'h14, 8'h08};   // 62  >
-            mem[ 63] = {8'h02, 8'h01, 8'h51, 8'h09, 8'h06};   // 63  ?
+            mem[ 63] = {8'h02, 8'h01, 8'h51, 8'h09, 8'h06};   // 63  ?*/
             mem[ 64] = {8'h32, 8'h49, 8'h59, 8'h51, 8'h3E};   // 64  @
             mem[ 65] = {8'h7C, 8'h12, 8'h11, 8'h12, 8'h7C};   // 65  A
             mem[ 66] = {8'h7F, 8'h49, 8'h49, 8'h49, 8'h36};   // 66  B

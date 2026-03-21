@@ -13,7 +13,12 @@ module top(
 
     // ad 采集
     input   [9:0]       ad_io,
-    output  wire        ad_clk
+    output  wire        ad_clk,
+
+    // 数码管
+    output  wire [8:0]   seg_led_1,
+    output  wire [8:0]   seg_led_2
+
 );
 
 
@@ -34,14 +39,14 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 
-assign ad_clk = clk_24mhz;
+assign ad_clk = clk;
 wire [1:0] unit; // 单位：0-Hz 1KHz 2MHz
 Oled oled_inst(
     .clk     (clk     ), 
     .rst_n   (rst_n   ), 
     .sw      (sw      ),
     .unit    (unit    ),
-//    .vpp    (vpp_code),
+    .vpp    (vpp_code),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),
     .oled_dcn(oled_dcn),
@@ -57,34 +62,47 @@ KeyDebounce key_inst(
     .key_filter (key_result)
 );
 
-
+// 转换频率值
 Bin2Bcd bin2bcd_inst(
     .rst_n      (rst_n),
     .bin_code   (signal_cnt),
     .bcd_code   (bcd_code)
-);/*
+);
+// 转换vpp值
 Bin2Bcd bin2bcd_inst2(
     .rst_n      (rst_n),
     .bin_code   (vpp),
     .bcd_code   (vpp_code)
-);*/
-
+);
+/*
 PLL pll_inst
 (
 .areset				(!rst_n			), //pll模块的复位为高有效
 .inclk0				(clk			), //12MHz系统时钟输入
 .c0					(clk_24mhz		), //48MHz时钟输出
 .locked				(locked			)  //pll lock信号输出
-);
+);*/
 
 
 
 CheckSignal signal_inst(
-    .clk(clk_24mhz),
+    .clk(clk),
     .rst_n(rst_n),
     .ad_val(ad_io),
     .ad_cnt(signal_cnt),
-    .unit(unit)
-    //.vpp(vpp)
+    .unit(unit),
+    .vpp(vpp)
 );
+
+// 判断是不是kHz
+wire [8:0] seg_led_2_t;
+assign seg_led_2 =  unit==2'd1 ? (seg_led_2_t|9'b10_000_000) :seg_led_2_t;
+// 数码管驱动
+LED led_inst(
+    .seg_data_1(sw[7:4]),
+    .seg_data_2(sw[3:0]),
+    .seg_led_1(seg_led_1),
+    .seg_led_2( seg_led_2_t) // 如果是kHz的话，点亮右下角的dp
+);
+
 endmodule

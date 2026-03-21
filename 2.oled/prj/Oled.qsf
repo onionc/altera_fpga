@@ -234,6 +234,7 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=42" 
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=42" -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK=000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK_LENGTH=150" -section_id auto_signaltap_0
+set_global_assignment -name VERILOG_FILE ../rtl/LED.v
 set_global_assignment -name VERILOG_FILE ../rtl/CheckSignal.v
 set_global_assignment -name VERILOG_FILE ../rtl/Bin2Bcd.v
 set_global_assignment -name VERILOG_FILE ../rtl/KeyDebounce.v
@@ -241,5 +242,23 @@ set_global_assignment -name VERILOG_FILE ../rtl/top.v
 set_global_assignment -name VERILOG_FILE ../rtl/Oled12864.v
 set_global_assignment -name SIGNALTAP_FILE output_files/test_ad.stp
 set_global_assignment -name QIP_FILE PLL.qip
+set_location_assignment PIN_E1 -to seg_led_1[0]
+set_location_assignment PIN_D2 -to seg_led_1[1]
+set_location_assignment PIN_K2 -to seg_led_1[2]
+set_location_assignment PIN_J2 -to seg_led_1[3]
+set_location_assignment PIN_G2 -to seg_led_1[4]
+set_location_assignment PIN_F5 -to seg_led_1[5]
+set_location_assignment PIN_G5 -to seg_led_1[6]
+set_location_assignment PIN_L1 -to seg_led_1[7]
+set_location_assignment PIN_E2 -to seg_led_1[8]
+set_location_assignment PIN_A3 -to seg_led_2[0]
+set_location_assignment PIN_A2 -to seg_led_2[1]
+set_location_assignment PIN_P2 -to seg_led_2[2]
+set_location_assignment PIN_P1 -to seg_led_2[3]
+set_location_assignment PIN_N1 -to seg_led_2[4]
+set_location_assignment PIN_C1 -to seg_led_2[5]
+set_location_assignment PIN_C2 -to seg_led_2[6]
+set_location_assignment PIN_R2 -to seg_led_2[7]
+set_location_assignment PIN_B1 -to seg_led_2[8]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SLD_FILE db/test_ad_auto_stripped.stp

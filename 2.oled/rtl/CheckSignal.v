@@ -5,8 +5,8 @@ module CheckSignal(
     input           rst_n,
     input   [9:0]   ad_val,    // 信号数值
     output  reg [9:0] ad_cnt,
-    output  reg [1:0]  unit // 单位：0-Hz 1-KHz 2-Mhz
-    //output reg [9:0] vpp
+    output  reg [1:0]  unit, // 单位：0-Hz 1-KHz 2-Mhz
+    output reg [9:0] vpp
     
 );
 
@@ -50,7 +50,7 @@ wire [31:0] ad_cnt_v_div1K;
 wire [31:0] ad_cnt_v_div1M;
 assign ad_cnt_v_div1K = (ad_cnt_v * 32'd4194) >> 22; // 除1000,误差可能差1
 assign ad_cnt_v_div1M = (ad_cnt_v_div1K * 32'd4194) >> 22;
-/*
+
 // 计算vpp
 reg [9:0] max_val;
 reg [9:0] min_val;
@@ -69,7 +69,7 @@ always @(posedge clk or negedge rst_n) begin
         if(ad_val < min_val)
             min_val <= ad_val;
     end
-end*/
+end
 
 // 每秒计算一次
 always @(posedge clk or negedge rst_n) begin
@@ -79,7 +79,7 @@ always @(posedge clk or negedge rst_n) begin
         ad_cnt_v <= 0;
         unit <= 2'b0;
         //vpp <= 0;
-    end else if(clk_cnt == 28'd24000000-1) begin
+    end else if(clk_cnt == 28'd12000000-1) begin
         clk_cnt <= 28'b0;
         
         if(ad_cnt_v > 'd1000000) begin
@@ -94,7 +94,7 @@ always @(posedge clk or negedge rst_n) begin
         end
         ad_cnt_v <= 0;
 
-        //vpp <= max_val - min_val;   
+        vpp <= max_val - min_val;   
 
     end else begin
         clk_cnt <= clk_cnt + 28'b1;

@@ -24,9 +24,13 @@ module top(
 
 reg [15:0] sw;
 (*keep*) wire [15:0] bcd_code;
-wire [15:0] vpp_code;
 wire clk_24mhz,locked;
 wire [9:0] signal_cnt;
+
+// 峰峰值计算
+wire [9:0] vpp;  // 峰峰值 无量纲
+wire [9:0] vppv; // 峰峰值 电压值
+wire [15:0] vpp_code; // 峰峰值 bcd
 
 wire key_result;
 always @(posedge clk or negedge rst_n) begin
@@ -46,7 +50,8 @@ Oled oled_inst(
     .rst_n   (rst_n   ), 
     .sw      (sw      ),
     .unit    (unit    ),
-    .vpp    (vpp_code),
+    .vpp_v   (vppv),
+    .vpp_bcd    (vpp_code),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),
     .oled_dcn(oled_dcn),
@@ -71,7 +76,7 @@ Bin2Bcd bin2bcd_inst(
 // 转换vpp值
 Bin2Bcd bin2bcd_inst2(
     .rst_n      (rst_n),
-    .bin_code   (vpp),
+    .bin_code   (vppv),
     .bcd_code   (vpp_code)
 );
 /*
@@ -93,6 +98,10 @@ CheckSignal signal_inst(
     .unit(unit),
     .vpp(vpp)
 );
+// vpp 峰峰值转为电压值，*9/100 = ab,  代表 a.b V, 算法优化为 y <= (x * 23) >> 8
+wire [15:0] tmp;
+assign tmp = (vpp << 4) + (vpp << 2) + (vpp << 1) + vpp;
+assign vppv   = tmp >> 8;
 
 // 判断是不是kHz
 wire [8:0] seg_led_2_t;

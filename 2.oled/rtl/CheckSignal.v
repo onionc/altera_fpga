@@ -10,8 +10,8 @@ module CheckSignal(
     
 );
 
-reg [9:0]   min = 10'd600;
-reg [9:0]   max = 10'd700;
+reg [9:0]   min = 10'd500;
+reg [9:0]   max = 10'd550;
 reg [27:0] clk_cnt;
 
 reg [2:0] state;
@@ -58,8 +58,10 @@ always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         max_val <= 10'd0;
         min_val <= 10'h3FF;
+        
     end else begin
-        if (clk_cnt == 28'd24000000-1) begin
+        
+        if (clk_cnt == 28'd12000000-1) begin
             max_val <= 10'd0;
             min_val <= 10'h3FF;
         end 
@@ -78,7 +80,7 @@ always @(posedge clk or negedge rst_n) begin
         ad_cnt <= 10'b0;
         ad_cnt_v <= 0;
         unit <= 2'b0;
-        //vpp <= 0;
+        vpp <= 0;
     end else if(clk_cnt == 28'd12000000-1) begin
         clk_cnt <= 28'b0;
         
@@ -94,7 +96,8 @@ always @(posedge clk or negedge rst_n) begin
         end
         ad_cnt_v <= 0;
 
-        vpp <= max_val - min_val;   
+        if(max_val > min_val)
+            vpp <= max_val - min_val;   
 
     end else begin
         clk_cnt <= clk_cnt + 28'b1;

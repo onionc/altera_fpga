@@ -23,7 +23,7 @@ module top(
 
 
 reg [15:0] sw;
-(*keep*) wire [15:0] bcd_code;
+wire [15:0] bcd_code;
 wire clk_24mhz,locked;
 wire [9:0] signal_cnt;
 
@@ -31,6 +31,13 @@ wire [9:0] signal_cnt;
 wire [9:0] vpp;  // 峰峰值 无量纲
 wire [9:0] vppv; // 峰峰值 电压值
 wire [15:0] vpp_code; // 峰峰值 bcd
+
+// 占空比计算
+wire [9:0] dutyHigh;
+wire [9:0] dutyPeriod;
+wire [15:0] dutyPeriod_bcd;
+wire [15:0] dutyHigh_bcd;
+
 
 wire key_result;
 always @(posedge clk or negedge rst_n) begin
@@ -52,6 +59,8 @@ Oled oled_inst(
     .unit    (unit    ),
     .vpp_v   (vppv[7:0]),
     .vpp_bcd    (vpp_code),
+    .dutyPeriod_bcd(dutyPeriod_bcd),
+    .dutyHigh_bcd(dutyHigh_bcd),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),
     .oled_dcn(oled_dcn),
@@ -79,6 +88,21 @@ Bin2Bcd bin2bcd_inst2(
     .bin_code   (vppv),
     .bcd_code   (vpp_code)
 );
+
+// 转换vpp值
+Bin2Bcd bin2bcd_inst3(
+    .rst_n      (rst_n),
+    .bin_code   (dutyPeriod[9:0]),
+    .bcd_code   (dutyPeriod_bcd)
+);
+
+
+Bin2Bcd bin2bcd_inst4(
+    .rst_n      (rst_n),
+    .bin_code   (dutyHigh),
+    .bcd_code   (dutyHigh_bcd)
+);
+
 /*
 PLL pll_inst
 (
@@ -96,7 +120,9 @@ CheckSignal signal_inst(
     .ad_val(ad_io),
     .ad_cnt(signal_cnt),
     .unit(unit),
-    .vpp(vpp)
+    .vpp(vpp),
+    .dutyPeriod(dutyPeriod),
+    .dutyHigh(dutyHigh)
 );
 // vpp 峰峰值转为电压值，*9/100 = ab,  代表 a.b V, 算法优化为 y <= (x * 23) >> 8
 wire [15:0] tmp;

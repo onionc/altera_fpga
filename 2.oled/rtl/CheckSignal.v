@@ -6,7 +6,9 @@ module CheckSignal(
     input   [9:0]   ad_val,    // 信号数值
     output  reg [9:0] ad_cnt,
     output  reg [1:0]  unit, // 单位：0-Hz 1-KHz 2-Mhz
-    output reg [9:0] vpp
+    output reg [9:0] vpp,
+    output reg [31:0] dutyHigh,
+    output reg [9:0] dutyPeriod
     
 );
 
@@ -73,7 +75,7 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-// 每秒计算一次
+// 每秒计算一次频率以及幅值
 always @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         clk_cnt <= 28'b0;
@@ -109,5 +111,57 @@ always @(posedge clk or negedge rst_n) begin
             //ad_cnt_v <= ad_cnt_v;
     end
 end
+
+// 计算占空比，需要有一个信号,通过采样和某个值判断 max = 10'd550;
+
+wire sig_in = ad_val > 10'd450;
+/*
+// 加一个滞回
+reg sig_in;
+
+always @(posedge clk) begin
+    if(ad_val > max)
+        sig_in <= 1;
+    else if(ad_val < min)
+        sig_in <= 0;
+end
+*/
+// 边沿检测
+reg sig_d;
+always @(posedge clk)
+    sig_d <= sig_in;
+wire rising = sig_in & ~sig_d;
+wire falling = ~sig_in & sig_d;
+
+
+// 计数器
+reg [9:0] duty_cnt_total;
+reg [31:0] duty_cnt_high;
+// 周期计数
+always @(posedge clk or negedge rst_n) begin
+    if(!rst_n) begin
+        duty_cnt_total <= 0;
+        duty_cnt_high <= 0;
+    end else begin
+        duty_cnt_total <= duty_cnt_total + 1;
+        
+        if(rising) begin
+            dutyPeriod <= duty_cnt_total;
+            dutyHigh <= duty_cnt_high;
+
+            duty_cnt_total <= 0;
+            duty_cnt_high <= 0;
+        end else begin
+            if(sig_in)
+                duty_cnt_high <= duty_cnt_high + 1;
+        end
+
+    end
+    
+end
+// 占空比计算 high/period
+
+
+
 
 endmodule

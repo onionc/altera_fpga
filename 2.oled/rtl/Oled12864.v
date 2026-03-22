@@ -51,7 +51,6 @@ module Oled
     reg	[7:0]	y_p, x_ph, x_pl;
     reg	[(8*16-1):0] char;
     reg	[7:0]	num, char_reg;				//
-    reg [7:0]   show_bar_num;
     reg	[4:0]	cnt_main, cnt_init, cnt_scan, cnt_write;
     reg	[15:0]	num_delay, cnt_delay, cnt;
     reg	[6:0] 	state, state_back;
@@ -60,7 +59,7 @@ module Oled
         if(!rst_n) begin
             cnt_main <= 1'b0; cnt_init <= 1'b0; cnt_scan <= 1'b0; cnt_write <= 1'b0;
             y_p <= 1'b0; x_ph <= 1'b0; x_pl <= 1'b0;
-            num <= 1'b0; char <= 1'b0; char_reg <= 1'b0; show_bar_num<=8'b0;
+            num <= 1'b0; char <= 1'b0; char_reg <= 1'b0;
             num_delay <= 16'd5; cnt_delay <= 1'b0; cnt <= 1'b0;
             oled_csn <= HIGH; oled_rst <= HIGH; oled_dcn <= CMD; oled_clk <= HIGH; oled_dat <= LOW;
             state <= IDLE; state_back <= IDLE;
@@ -69,7 +68,7 @@ module Oled
                 IDLE:begin
                         cnt_main <= 1'b0; cnt_init <= 1'b0; cnt_scan <= 1'b0; cnt_write <= 1'b0;
                         y_p <= 1'b0; x_ph <= 1'b0; x_pl <= 1'b0;
-                        num <= 1'b0; char <= 1'b0; char_reg <= 1'b0; show_bar_num<=8'b0;
+                        num <= 1'b0; char <= 1'b0; char_reg <= 1'b0;
                         num_delay <= 16'd5; cnt_delay <= 1'b0; cnt <= 1'b0;
                         oled_csn <= HIGH; oled_rst <= HIGH; oled_dcn <= CMD; oled_clk <= HIGH; oled_dat <= LOW;
                         state <= MAIN; state_back <= MAIN;
@@ -106,12 +105,8 @@ module Oled
                             ;state <= SCAN; end
                             // 更新vpp
                             5'd11:	begin y_p <= 8'hb2; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 5; char <= {{4'd0,sw[15:12]},{4'd0,sw[11:8]},{4'd0,vpp_bcd[7:4]},".", {4'd0,vpp_bcd[3:0]}}; state <= SCAN; end
-                            // 画条形图，这里的刷新还可以优化，画一整条，前面是绘制的条[0~vpp_v]，后面是空[vpp_v~120]
+                            // 画条形图
                             5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= 8'd00;  state <= SHOW_BAR; end 
-                            //5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= vpp_v[7:0];  state <= SHOW_BAR; end
-
-
-
  
                             default: state <= IDLE;
                         endcase
@@ -163,7 +158,7 @@ module Oled
                             default: state <= IDLE;
                         endcase
                     end
-                SHOW_BAR:begin	// 画条形图，每个数值画三列，总共画120列
+                SHOW_BAR:begin	// 画条形图，每个数值画三列，总共画120列。画一整条，前面是绘制的条[0~vpp_v]，后面是空[vpp_v~120]
                         if(cnt_scan == 5'd6) begin
                             if(num<8'd40) cnt_scan <= 5'd3;
                             else cnt_scan <= cnt_scan + 1'b1;

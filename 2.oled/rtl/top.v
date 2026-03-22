@@ -50,7 +50,7 @@ Oled oled_inst(
     .rst_n   (rst_n   ), 
     .sw      (sw      ),
     .unit    (unit    ),
-    .vpp_v   (vppv),
+    .vpp_v   (vppv[7:0]),
     .vpp_bcd    (vpp_code),
     .oled_csn(oled_csn),
     .oled_rst(oled_rst),

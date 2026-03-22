@@ -31,7 +31,7 @@ module Oled
 
     input       [15:0]   sw, // 显示信号
     input       [1:0]   unit, // 单位
-    input       [9:0]   vpp_v, // 峰峰值电压
+    input       [7:0]   vpp_v, // 峰峰值电压
     input       [15:0]  vpp_bcd, // 显示峰峰值 bcd
     output	reg			oled_csn,	//OLCD液晶屏使能
     output	reg			oled_rst,	//OLCD液晶屏复位
@@ -51,6 +51,7 @@ module Oled
     reg	[7:0]	y_p, x_ph, x_pl;
     reg	[(8*16-1):0] char;
     reg	[7:0]	num, char_reg;				//
+    reg [7:0]   show_bar_num;
     reg	[4:0]	cnt_main, cnt_init, cnt_scan, cnt_write;
     reg	[15:0]	num_delay, cnt_delay, cnt;
     reg	[6:0] 	state, state_back;
@@ -59,7 +60,7 @@ module Oled
         if(!rst_n) begin
             cnt_main <= 1'b0; cnt_init <= 1'b0; cnt_scan <= 1'b0; cnt_write <= 1'b0;
             y_p <= 1'b0; x_ph <= 1'b0; x_pl <= 1'b0;
-            num <= 1'b0; char <= 1'b0; char_reg <= 1'b0;
+            num <= 1'b0; char <= 1'b0; char_reg <= 1'b0; show_bar_num<=8'b0;
             num_delay <= 16'd5; cnt_delay <= 1'b0; cnt <= 1'b0;
             oled_csn <= HIGH; oled_rst <= HIGH; oled_dcn <= CMD; oled_clk <= HIGH; oled_dat <= LOW;
             state <= IDLE; state_back <= IDLE;
@@ -68,13 +69,13 @@ module Oled
                 IDLE:begin
                         cnt_main <= 1'b0; cnt_init <= 1'b0; cnt_scan <= 1'b0; cnt_write <= 1'b0;
                         y_p <= 1'b0; x_ph <= 1'b0; x_pl <= 1'b0;
-                        num <= 1'b0; char <= 1'b0; char_reg <= 1'b0;
+                        num <= 1'b0; char <= 1'b0; char_reg <= 1'b0; show_bar_num<=8'b0;
                         num_delay <= 16'd5; cnt_delay <= 1'b0; cnt <= 1'b0;
                         oled_csn <= HIGH; oled_rst <= HIGH; oled_dcn <= CMD; oled_clk <= HIGH; oled_dat <= LOW;
                         state <= MAIN; state_back <= MAIN;
                     end
                 MAIN:begin
-                        if(cnt_main >= 5'd13) cnt_main <= 5'd9;
+                        if(cnt_main >= 5'd12) cnt_main <= 5'd9;
                         else cnt_main <= cnt_main + 1'b1;
                         case(cnt_main)	//MAIN状态
                             5'd0:	begin state <= INIT; end
@@ -105,9 +106,10 @@ module Oled
                             ;state <= SCAN; end
                             // 更新vpp
                             5'd11:	begin y_p <= 8'hb2; x_ph <= 8'h13; x_pl <= 8'h00; num <= 5'd 5; char <= {{4'd0,sw[15:12]},{4'd0,sw[11:8]},{4'd0,vpp_bcd[7:4]},".", {4'd0,vpp_bcd[3:0]}}; state <= SCAN; end
-                            // 画条形图，这里的刷新还可以优化，画一整条，前面是绘制的条，后面是空
-                            5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= 5'd16; char <= "                ";state <= SCAN; end
-                            5'd13:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= vpp_v[7:0];  state <= SHOW_BAR; end
+                            // 画条形图，这里的刷新还可以优化，画一整条，前面是绘制的条[0~vpp_v]，后面是空[vpp_v~120]
+                            5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= 8'd00;  state <= SHOW_BAR; end 
+                            //5'd12:	begin y_p <= 8'hb3; x_ph <= 8'h10; x_pl <= 8'h00; num <= vpp_v[7:0];  state <= SHOW_BAR; end
+
 
 
  
@@ -161,9 +163,9 @@ module Oled
                             default: state <= IDLE;
                         endcase
                     end
-                SHOW_BAR:begin	// 画条形图，每个数值画三列
+                SHOW_BAR:begin	// 画条形图，每个数值画三列，总共画120列
                         if(cnt_scan == 5'd6) begin
-                            if(num) cnt_scan <= 5'd3;
+                            if(num<8'd40) cnt_scan <= 5'd3;
                             else cnt_scan <= cnt_scan + 1'b1;
                         end else if(cnt_scan == 5'd7) cnt_scan <= 1'b0;
                         else cnt_scan <= cnt_scan + 1'b1;
@@ -173,12 +175,12 @@ module Oled
                             5'd 2:	begin oled_dcn <= CMD; char_reg <= x_ph; state <= WRITE; state_back <= SHOW_BAR; end	//定位行地址高位
  
                             5'd 3:	begin 
-                                if(num!=0) 
-                                    num <= num - 1'b1;
+                                if(num<8'd40) 
+                                    num <= num + 1'b1;
                             end
-                            5'd 4:	begin oled_dcn <= DATA; char_reg <= 8'hFF; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
-                            5'd 5:	begin oled_dcn <= DATA; char_reg <= 8'hFF; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
-                            5'd 6:	begin oled_dcn <= DATA; char_reg <= 8'hFF; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
+                            5'd 4:	begin oled_dcn <= DATA; char_reg <= num<vpp_v ? 8'hFF : 8'h00; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
+                            5'd 5:	begin oled_dcn <= DATA; char_reg <= num<vpp_v ? 8'hFF : 8'h00; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
+                            5'd 6:	begin oled_dcn <= DATA; char_reg <= num<vpp_v ? 8'hFF : 8'h00; state <= WRITE; state_back <= SHOW_BAR; end	// 写入一列数据
                             5'd7:	begin state <= MAIN; end
                             default: state <= IDLE;
                         endcase
